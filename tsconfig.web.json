@@ -1,0 +1,40 @@
+{
+  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
+  "include": [
+    "types/*.d.ts",
+    "src/renderer/src/**/*",
+    "src/renderer/src/**/*.vue",
+    "src/preload/*.d.ts"
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "target": "esnext",
+    "jsx": "preserve",
+    "jsxImportSource": "vue",
+    "lib": ["esnext", "dom"],
+    "useDefineForClassFields": true,
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@renderer/*": ["src/renderer/src/*"]
+    },
+    "resolveJsonModule": true,
+    "types": ["vite/client"],
+    // 允许导入 .ts .mts .tsx 拓展名的文件
+    "allowImportingTsExtensions": true,
+    // 允许 JS
+    "allowJs": true,
+    // TS 严格模式
+    "strict": true,
+    "importHelpers": true,
+    // 不输出任何编译后的文件，只进行类型检查
+    "noEmit": true,
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "skipLibCheck": true
+  }
+}
