@@ -1,7 +1,10 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import iOSDeviceManager from './iOSDeviceManager'
 import icon from '../../resources/icon.png?asset'
+
+let deviceManager: iOSDeviceManager
 
 function createWindow(): void {
   // Create the browser window.
@@ -33,12 +36,17 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  // 开发模式下打开开发者工具
+  if (process.env.NODE_ENV === 'development') {
+    mainWindow.webContents.openDevTools()
+  }
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
@@ -53,6 +61,21 @@ app.whenReady().then(() => {
   ipcMain.on('ping', () => console.log('pong'))
 
   createWindow()
+
+  // 初始化 iOS 设备管理器
+  deviceManager = new iOSDeviceManager()
+  try {
+    await deviceManager.initialize()
+    console.log('设备管理器初始化成功')
+  } catch (error) {
+    console.error('设备管理器初始化失败:', error)
+
+    // 显示错误对话框
+    dialog.showErrorBox(
+      '初始化失败',
+      'libimobiledevice 未安装或配置错误。请确保已正确安装 libimobiledevice。'
+    )
+  }
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

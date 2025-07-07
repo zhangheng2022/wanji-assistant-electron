@@ -16,6 +16,7 @@ win:
   requestedExecutionLevel: requireAdministrator
   target: msi
 msi:
+  additionalLightArgs: ['-cultures:zh-CN']
   artifactName: ${name}-${version}.${ext}
   createDesktopShortcut: always
   createStartMenuShortcut: true
