@@ -16,7 +16,6 @@ export default defineConfig({
   renderer: {
     resolve: {
       alias: {
-        '@': resolve('src'),
         '@renderer': resolve('src/renderer/src')
       }
     },
@@ -26,12 +25,17 @@ export default defineConfig({
       // 自动按需导入 API
       AutoImport({
         imports: ['vue'],
-        dts: '../../../types/auto/auto-imports.d.ts',
+        dts: resolve(__dirname, 'types/auto/auto-imports.d.ts'),
+        eslintrc: {
+          enabled: true, // 自动生成 .eslintrc-auto-import.json
+          filepath: './.eslintrc-auto-import.json',
+          globalsPropValue: 'readonly'
+        },
         resolvers: [ElementPlusResolver()]
       }),
       // 自动按需导入组件
       Components({
-        dts: '../../../types/auto/components.d.ts',
+        dts: resolve(__dirname, 'types/auto/components.d.ts'),
         resolvers: [ElementPlusResolver()]
       })
     ]

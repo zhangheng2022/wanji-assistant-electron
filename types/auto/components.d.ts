@@ -8,6 +8,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ElConfigProvider: typeof import('element-plus/es')['ElConfigProvider']
     Versions: typeof import('./../../src/renderer/src/components/Versions.vue')['default']
   }
 }
