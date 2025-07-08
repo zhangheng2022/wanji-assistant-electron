@@ -32,7 +32,8 @@ export default tseslint.config(
             lang: 'ts'
           }
         }
-      ]
+      ],
+      '@typescript-eslint/no-explicit-any': 'off'
     }
   },
   eslintConfigPrettier

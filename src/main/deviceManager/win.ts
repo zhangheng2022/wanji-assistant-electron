@@ -3,7 +3,7 @@ import { spawn, exec } from 'child_process'
 import { EventEmitter } from 'events'
 import { join } from 'path'
 
-class iOSDeviceManager extends EventEmitter {
+class WinDeviceManager extends EventEmitter {
   devices: Map<string, Record<string, string>>
   isMonitoring: boolean
   libimobiledevicePath: string
@@ -98,7 +98,7 @@ class iOSDeviceManager extends EventEmitter {
 
   async getDeviceInfo(deviceId: string): Promise<Record<string, string>> {
     return new Promise((resolve, reject) => {
-      exec(`ideviceinfo -u ${deviceId}`, (error, stdout) => {
+      exec(`${this.libimobiledevicePath}/ideviceinfo -u ${deviceId}`, (error, stdout) => {
         if (error) {
           reject(error)
           return
@@ -151,7 +151,7 @@ class iOSDeviceManager extends EventEmitter {
 
   async installApp(deviceId: string, ipaPath: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const cmd = `ideviceinstaller -u ${deviceId} -i "${ipaPath}"`
+      const cmd = `${this.libimobiledevicePath}/ideviceinstaller -u ${deviceId} -i "${ipaPath}"`
 
       const process = spawn('sh', ['-c', cmd], { stdio: 'pipe' })
 
@@ -234,7 +234,7 @@ class iOSDeviceManager extends EventEmitter {
 
   async getDeviceLogs(deviceId: string): Promise<string | ChildProcessWithoutNullStreams> {
     return new Promise((resolve) => {
-      const process = spawn('idevicesyslog', ['-u', deviceId])
+      const process = spawn(`${this.libimobiledevicePath}/idevicesyslog`, ['-u', deviceId])
 
       let logs = ''
 
@@ -262,7 +262,7 @@ class iOSDeviceManager extends EventEmitter {
     localPort: number
   ): Promise<Error | ChildProcessWithoutNullStreams> {
     return new Promise((resolve, reject) => {
-      const process = spawn('iproxy', [localPort.toString(), devicePort.toString(), deviceId])
+      const process = spawn(`${this.libimobiledevicePath}/iprox`, [localPort.toString(), devicePort.toString(), deviceId])
 
       process.on('spawn', () => {
         console.log(`端口转发已启动: ${localPort} -> ${devicePort}`)
@@ -281,7 +281,7 @@ class iOSDeviceManager extends EventEmitter {
 
   async backupDevice(deviceId: string, backupPath: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const cmd = `idevicebackup2 -u ${deviceId} backup "${backupPath}"`
+      const cmd = `${this.libimobiledevicePath}/idevicebackup2 -u ${deviceId} backup "${backupPath}"`
 
       const process = spawn('sh', ['-c', cmd], { stdio: 'pipe' })
 
@@ -301,7 +301,7 @@ class iOSDeviceManager extends EventEmitter {
 
   async restoreDevice(deviceId: string, backupPath: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      const cmd = `idevicebackup2 -u ${deviceId} restore "${backupPath}"`
+      const cmd = `${this.libimobiledevicePath}/idevicebackup2 -u ${deviceId} restore "${backupPath}"`
 
       const process = spawn('sh', ['-c', cmd], { stdio: 'pipe' })
 
@@ -365,4 +365,4 @@ class iOSDeviceManager extends EventEmitter {
   }
 }
 
-export default iOSDeviceManager
+export default WinDeviceManager

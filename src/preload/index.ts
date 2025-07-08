@@ -1,22 +1,58 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron'
 
-// Custom APIs for renderer
-const api = {}
+type Device = { id: string; info: Record<string, string> }
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
-if (process.contextIsolated) {
-  try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
-  } catch (error) {
-    console.error(error)
+contextBridge.exposeInMainWorld('iOSDeviceAPI', {
+  // 设备管理
+  getConnectedDevices: () => ipcRenderer.invoke('get-connected-devices'),
+  getDeviceInfo: (deviceId: string) => ipcRenderer.invoke('get-device-info', deviceId),
+
+  // 应用管理
+  installApp: (deviceId: string, ipaPath: string) =>
+    ipcRenderer.invoke('install-app', deviceId, ipaPath),
+
+  uninstallApp: (deviceId: string, bundleId: string) =>
+    ipcRenderer.invoke('uninstall-app', deviceId, bundleId),
+
+  getInstalledApps: (deviceId: string) => ipcRenderer.invoke('get-installed-apps', deviceId),
+
+  // 设备操作
+  takeScreenshot: (deviceId: string) => ipcRenderer.invoke('take-screenshot', deviceId),
+  startDeviceLogs: (deviceId: string) => ipcRenderer.invoke('start-device-logs', deviceId),
+  forwardPort: (deviceId: string, devicePort: number, localPort: number) =>
+    ipcRenderer.invoke('forward-port', deviceId, devicePort, localPort),
+
+  // 备份和恢复
+  backupDevice: (deviceId: string) => ipcRenderer.invoke('backup-device', deviceId),
+  restoreDevice: (deviceId: string) => ipcRenderer.invoke('restore-device', deviceId),
+
+  // 设备控制
+  rebootDevice: (deviceId: string) => ipcRenderer.invoke('reboot-device', deviceId),
+  shutdownDevice: (deviceId: string) => ipcRenderer.invoke('shutdown-device', deviceId),
+
+  // 事件监听
+  onDeviceConnected: (callback: (device: Device) => void) => {
+    ipcRenderer.on('device-connected', (_, device) => callback(device))
+  },
+
+  onDeviceDisconnected: (callback: (device: Device) => void) => {
+    ipcRenderer.on('device-disconnected', (_, device) => callback(device))
+  },
+
+  onDeviceLog: (callback: (device: Device) => void) => {
+    ipcRenderer.on('device-log', (_, logData) => callback(logData))
+  },
+
+  onBackupProgress: (callback: (device: Device) => void) => {
+    ipcRenderer.on('backup-progress', (_, progress) => callback(progress))
+  },
+
+  onRestoreProgress: (callback: (device: Device) => void) => {
+    ipcRenderer.on('restore-progress', (_, progress) => callback(progress))
+  },
+
+  // 移除事件监听
+  removeAllListeners: (channel?: string) => {
+    ipcRenderer.removeAllListeners(channel)
   }
-} else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
-}
+})
