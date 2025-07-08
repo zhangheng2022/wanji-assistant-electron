@@ -18,8 +18,6 @@ class WinDeviceManager extends EventEmitter {
   findLibimobiledevicePath(): string {
     // 根据平台返回不同的路径
     const platform = process.platform
-    console.log(platform, join(__dirname, '../../resources/libimobiledevice/win-x64'))
-
     if (platform === 'win32') {
       return join(__dirname, '../../resources/libimobiledevice/win-x64')
     } else if (platform === 'darwin') {
@@ -262,7 +260,11 @@ class WinDeviceManager extends EventEmitter {
     localPort: number
   ): Promise<Error | ChildProcessWithoutNullStreams> {
     return new Promise((resolve, reject) => {
-      const process = spawn(`${this.libimobiledevicePath}/iprox`, [localPort.toString(), devicePort.toString(), deviceId])
+      const process = spawn(`${this.libimobiledevicePath}/iprox`, [
+        localPort.toString(),
+        devicePort.toString(),
+        deviceId
+      ])
 
       process.on('spawn', () => {
         console.log(`端口转发已启动: ${localPort} -> ${devicePort}`)
