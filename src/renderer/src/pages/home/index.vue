@@ -159,5 +159,5 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="app-container"></div>
+  <div class="app-container">123123</div>
 </template>
