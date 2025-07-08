@@ -26,7 +26,7 @@ interface LogData {
 // 响应式数据
 const devices = ref<Device[]>([])
 const selectedDevice = ref<Device | null>(null)
-const activeTab = ref('overview')
+// const activeTab = ref('overview')
 const logs = ref<LogData[]>([])
 const isLoading = ref(false)
 const notifications = ref<
@@ -40,19 +40,19 @@ const notifications = ref<
 
 // 计算属性
 const connectedDevicesCount = computed(() => devices.value.length)
-const selectedDeviceInfo = computed(() => {
-  if (!selectedDevice.value) return null
-  return {
-    id: selectedDevice.value.id,
-    name: selectedDevice.value.info.DeviceName || 'Unknown Device',
-    model: selectedDevice.value.info.ProductType || 'Unknown Model',
-    version: selectedDevice.value.info.ProductVersion || 'Unknown Version',
-    buildVersion: selectedDevice.value.info.BuildVersion || 'Unknown Build',
-    serialNumber: selectedDevice.value.info.SerialNumber || 'Unknown Serial',
-    batteryLevel: selectedDevice.value.batteryLevel || 0,
-    isCharging: selectedDevice.value.isCharging || false
-  }
-})
+// const selectedDeviceInfo = computed(() => {
+//   if (!selectedDevice.value) return null
+//   return {
+//     id: selectedDevice.value.id,
+//     name: selectedDevice.value.info.DeviceName || 'Unknown Device',
+//     model: selectedDevice.value.info.ProductType || 'Unknown Model',
+//     version: selectedDevice.value.info.ProductVersion || 'Unknown Version',
+//     buildVersion: selectedDevice.value.info.BuildVersion || 'Unknown Build',
+//     serialNumber: selectedDevice.value.info.SerialNumber || 'Unknown Serial',
+//     batteryLevel: selectedDevice.value.batteryLevel || 0,
+//     isCharging: selectedDevice.value.isCharging || false
+//   }
+// })
 
 // 方法
 const refreshDevices = async (): Promise<void> => {
@@ -86,10 +86,10 @@ const refreshDevices = async (): Promise<void> => {
   }
 }
 
-const selectDevice = (device: Device): void => {
-  selectedDevice.value = device
-  activeTab.value = 'overview'
-}
+// const selectDevice = (device: Device): void => {
+//   selectedDevice.value = device
+//   activeTab.value = 'overview'
+// }
 
 const addNotification = (type: 'success' | 'error' | 'warning' | 'info', message: string): void => {
   const notification = {
@@ -159,5 +159,14 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="app-container">123123</div>
+  <div class="app-container">
+    <el-button type="primary" :loading="isLoading" @click="refreshDevices">刷新设备</el-button>
+    <div>
+      <span>设备数：{{ connectedDevicesCount }}</span>
+    </div>
+    <div>
+      <span>设备信息</span>
+      {{ devices }}
+    </div>
+  </div>
 </template>

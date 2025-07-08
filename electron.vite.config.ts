@@ -24,7 +24,7 @@ export default defineConfig({
       UnoCSS(),
       // 自动按需导入 API
       AutoImport({
-        imports: ['vue'],
+        imports: ['vue', 'vue-router', 'pinia'],
         dts: resolve(__dirname, 'types/auto/auto-imports.d.ts'),
         eslintrc: {
           enabled: true, // 自动生成 .eslintrc-auto-import.json
