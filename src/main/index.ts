@@ -2,10 +2,10 @@ import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import * as path from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import WinDeviceManager from './core/win' // Adjust the import path as necessary
+import DeviceManager from './core' // Adjust the import path as necessary
 import icon from '../../resources/icon.png?asset'
 
-let deviceManager: WinDeviceManager
+let deviceManager: DeviceManager
 let mainWindow: BrowserWindow
 
 function createWindow(): void {
@@ -64,7 +64,7 @@ app.whenReady().then(async () => {
   createWindow()
 
   // 初始化 iOS 设备管理器
-  deviceManager = new WinDeviceManager()
+  deviceManager = new DeviceManager()
   try {
     await deviceManager.initialize()
     console.log('设备管理器初始化成功')
@@ -112,8 +112,6 @@ function setupDeviceEventListeners(): void {
   })
 
   deviceManager.on('deviceDisconnected', (device) => {
-    console.log('设备已断开:', device)
-
     // 发送到渲染进程
     if (mainWindow) {
       mainWindow.webContents.send('device-disconnected', device)

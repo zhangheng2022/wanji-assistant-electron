@@ -4,7 +4,6 @@ import { EventEmitter } from 'events'
 import { join } from 'path'
 import { listenToUsbmuxd } from './usbmuxd'
 import { ensureServiceRunning } from '../utils/service-running'
-import { log } from 'console'
 
 interface DeviceInfo {
   id: string
@@ -12,7 +11,7 @@ interface DeviceInfo {
   status: number // 1: 连接中, 2: 已连接, 3: 等待信任, 4: 信任失败, 5: 已配对
 }
 
-class WinDeviceManager extends EventEmitter {
+class DeviceManager extends EventEmitter {
   devices: Map<string, DeviceInfo>
   isMonitoring: boolean
   libimobiledevicePath: string
@@ -135,12 +134,10 @@ class WinDeviceManager extends EventEmitter {
     try {
       const existingDevice = this.devices.get(deviceId)
       let deviceInfo: Record<string, string> = existingDevice?.info || {}
-
       // 只有在设备已配对时才获取详细信息
       if (status === 5 && (!existingDevice || existingDevice.status !== 5)) {
         try {
           const info = await this.getDeviceInfo(deviceId)
-          log(`获取设备信息 (${deviceId}):`, info)
           deviceInfo = {
             DeviceName: info.DeviceName || '未知设备',
             ProductVersion: info.ProductVersion || '未知版本',
@@ -152,7 +149,6 @@ class WinDeviceManager extends EventEmitter {
           deviceInfo = existingDevice?.info || {}
         }
       }
-
       const device: DeviceInfo = {
         id: deviceId,
         info: deviceInfo,
@@ -487,4 +483,4 @@ class WinDeviceManager extends EventEmitter {
   }
 }
 
-export default WinDeviceManager
+export default DeviceManager
