@@ -4,6 +4,7 @@ import { EventEmitter } from 'events'
 import { join } from 'path'
 import { listenToUsbmuxd } from './usbmuxd'
 import { ensureServiceRunning } from '../utils/service-running'
+import { DeviceStatusManager } from './device-status'
 
 interface DeviceInfo {
   id: string
@@ -75,10 +76,12 @@ class DeviceManager extends EventEmitter {
 
     await ensureServiceRunning('Apple Mobile Device Service')
 
+    const statusManager = new DeviceStatusManager({
+      ideviceinfoPath: `${this.libimobiledevicePath}/idevicepair`
+    })
     listenToUsbmuxd(async (data) => {
       const { MessageType, Properties } = data
       const deviceId = Properties?.SerialNumber
-
       // 设备插入
       if (MessageType === 'Attached') {
         if (!deviceId) {
@@ -88,38 +91,28 @@ class DeviceManager extends EventEmitter {
         console.log(`设备 ${deviceId} 已连接`)
         this.deviceStatusMap.set(deviceId, 1) // 连接中
         this.updateDeviceStatus(deviceId, 1)
-        // 延迟3秒后检查设备状态
-        setTimeout(async () => {
-          this.deviceStatusMap.set(deviceId, 3) // 等待信任
-          this.updateDeviceStatus(deviceId, 3)
-          // 等待设备信任
-          const paired = await this.waitForTrust(deviceId, 10000)
-          if (paired) {
-            this.deviceStatusMap.set(deviceId, 5) // 已配对
-            this.updateDeviceStatus(deviceId, 5)
-          } else {
-            console.warn(`设备 ${deviceId} 未完成信任`)
+        statusManager.startWatchingDeviceStatus(deviceId, ({ accessible }) => {
+          if (accessible === 'password') {
+            this.deviceStatusMap.set(deviceId, 2) // 已连接但需要密码
+            this.updateDeviceStatus(deviceId, 2)
+            return
+          }
+          if (accessible === 'waitpair') {
+            this.deviceStatusMap.set(deviceId, 3) // 等待信任
+            this.updateDeviceStatus(deviceId, 3)
+          }
+          if (accessible === 'nopair') {
             this.deviceStatusMap.set(deviceId, 4) // 信任失败
             this.updateDeviceStatus(deviceId, 4)
+            return
           }
-        }, 3000)
+          if (accessible === 'success') {
+            this.deviceStatusMap.set(deviceId, 5) // 已配对
+            this.updateDeviceStatus(deviceId, 5)
+            return
+          }
+        })
       }
-
-      // 设备已配对（提前结束 waitForTrust）
-      if (MessageType === 'Paired') {
-        if (!deviceId) {
-          console.warn('设备未提供序列号，无法处理')
-          return
-        }
-        console.log(`设备 ${deviceId} 已配对`)
-        const resolver = this.waitTrustMap.get(deviceId)
-        if (resolver) {
-          resolver(true)
-        }
-        this.deviceStatusMap.set(deviceId, 5) // 已配对
-        this.updateDeviceStatus(deviceId, 5)
-      }
-
       // 设备断开
       if (MessageType === 'Detached') {
         this.updateDeviceList()
@@ -220,6 +213,24 @@ class DeviceManager extends EventEmitter {
         const isPaired = stdout.includes('SUCCESS')
         resolve(isPaired)
       })
+    })
+  }
+
+  // 获取设备解锁状态
+  async isDeviceUnlocked(deviceId: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      exec(
+        `${this.libimobiledevicePath}/ideviceinfo -u ${deviceId} -k ActivationState`,
+        (error, stdout) => {
+          if (error) {
+            resolve(false)
+            return
+          }
+          // 如果输出包含 "Unactivated" 则表示设备未解锁
+          const isUnlocked = stdout.trim() !== 'Unactivated'
+          resolve(isUnlocked)
+        }
+      )
     })
   }
 
