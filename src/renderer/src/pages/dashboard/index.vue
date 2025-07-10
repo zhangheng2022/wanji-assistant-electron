@@ -69,9 +69,12 @@ const refreshDevices = async (): Promise<void> => {
     // 获取设备详细信息
     for (const device of devices.value) {
       try {
-        const info = await window.iOSDeviceAPI.getDeviceInfo(device.id)
-
-        device.info = { ...device.info, ...info }
+        const deviceInfo = await window.iOSDeviceAPI.getDeviceInfo(device.id)
+        device.info = {
+          DeviceName: deviceInfo.DeviceName || '未知设备',
+          ProductVersion: deviceInfo.ProductVersion || '未知版本',
+          ModelNumber: deviceInfo.ModelNumber || '未知型号'
+        }
       } catch (error) {
         console.error(`Failed to get info for device ${device.id}:`, error)
       }
@@ -114,8 +117,15 @@ const removeNotification = (id: string): void => {
 }
 
 const onDeviceConnected = (device: Device): void => {
-  devices.value.push(device)
-  addNotification('success', `设备 ${device.info.DeviceName || device.id} 已连接`)
+  // 查找是否已存在相同设备
+  const existingDeviceIndex = devices.value.findIndex((d) => d.id === device.id)
+  if (existingDeviceIndex !== -1) {
+    // 更新设备信息
+    devices.value[existingDeviceIndex] = { ...device }
+  } else {
+    // 新设备，添加到列表
+    devices.value.push(device)
+  }
 }
 
 const onDeviceDisconnected = (device: Device): void => {

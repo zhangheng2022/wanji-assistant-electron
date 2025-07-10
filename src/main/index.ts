@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import * as path from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import WinDeviceManager from './deviceManager/win' // Adjust the import path as necessary
+import WinDeviceManager from './core/win' // Adjust the import path as necessary
 import icon from '../../resources/icon.png?asset'
 
 let deviceManager: WinDeviceManager
@@ -105,8 +105,6 @@ app.on('window-all-closed', () => {
 // 设置设备事件监听器
 function setupDeviceEventListeners(): void {
   deviceManager.on('deviceConnected', (device) => {
-    console.log('设备已连接:', device)
-
     // 发送到渲染进程
     if (mainWindow) {
       mainWindow.webContents.send('device-connected', device)
