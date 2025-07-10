@@ -171,35 +171,35 @@ class DeviceManager extends EventEmitter {
     })
   }
 
-  private async waitForTrust(deviceId: string, timeout = 10000): Promise<boolean> {
-    const interval = 1000 // 每秒轮询一次
-    const maxTries = Math.floor(timeout / interval)
-    return new Promise((resolve) => {
-      let count = 0
-      const timer = setInterval(async () => {
-        count++
-        // 检查是否已信任
-        const paired = await this.isDevicePaired(deviceId)
-        if (paired) {
-          clearInterval(timer)
-          this.waitTrustMap.delete(deviceId)
-          resolve(true)
-          return
-        }
-        if (count >= maxTries) {
-          clearInterval(timer)
-          this.waitTrustMap.delete(deviceId)
-          resolve(false)
-        }
-      }, interval)
-      // 注册 resolver，用于外部提前触发（如监听到 Paired）
-      this.waitTrustMap.set(deviceId, (result) => {
-        clearInterval(timer)
-        this.waitTrustMap.delete(deviceId)
-        resolve(result)
-      })
-    })
-  }
+  // private async waitForTrust(deviceId: string, timeout = 10000): Promise<boolean> {
+  //   const interval = 1000 // 每秒轮询一次
+  //   const maxTries = Math.floor(timeout / interval)
+  //   return new Promise((resolve) => {
+  //     let count = 0
+  //     const timer = setInterval(async () => {
+  //       count++
+  //       // 检查是否已信任
+  //       const paired = await this.isDevicePaired(deviceId)
+  //       if (paired) {
+  //         clearInterval(timer)
+  //         this.waitTrustMap.delete(deviceId)
+  //         resolve(true)
+  //         return
+  //       }
+  //       if (count >= maxTries) {
+  //         clearInterval(timer)
+  //         this.waitTrustMap.delete(deviceId)
+  //         resolve(false)
+  //       }
+  //     }, interval)
+  //     // 注册 resolver，用于外部提前触发（如监听到 Paired）
+  //     this.waitTrustMap.set(deviceId, (result) => {
+  //       clearInterval(timer)
+  //       this.waitTrustMap.delete(deviceId)
+  //       resolve(result)
+  //     })
+  //   })
+  // }
 
   // 获取设备配对状态
   async isDevicePaired(deviceId: string): Promise<boolean> {

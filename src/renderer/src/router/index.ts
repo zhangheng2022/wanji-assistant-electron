@@ -10,6 +10,21 @@ const Layouts = (): any => import('@renderer/layouts/index.vue')
  */
 export const constantRoutes: RouteRecordRaw[] = [
   {
+    path: '/',
+    component: Layouts,
+    redirect: '/dashboard',
+    children: [
+      {
+        path: 'dashboard',
+        component: () => import('@renderer/pages/dashboard/index.vue'),
+        name: 'Dashboard',
+        meta: {
+          title: '首页'
+        }
+      }
+    ]
+  },
+  {
     path: '/403',
     component: () => import('@renderer/pages/error/403.vue'),
     meta: {
@@ -30,21 +45,6 @@ export const constantRoutes: RouteRecordRaw[] = [
     meta: {
       hidden: true
     }
-  },
-  {
-    path: '/',
-    component: Layouts,
-    redirect: '/dashboard',
-    children: [
-      {
-        path: 'dashboard',
-        component: () => import('@renderer/pages/dashboard/index.vue'),
-        name: 'Dashboard',
-        meta: {
-          title: '首页'
-        }
-      }
-    ]
   }
 ]
 

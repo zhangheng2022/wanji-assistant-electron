@@ -8,17 +8,3 @@
     </router-link>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.error {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  &-svg {
-    width: 400px;
-    margin-bottom: 50px;
-  }
-}
-</style>
