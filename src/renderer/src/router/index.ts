@@ -1,6 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
-import { createRouter } from 'vue-router'
-import { routerConfig } from '@renderer/router/config'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 const Layouts = (): any => import('@renderer/layouts/index.vue')
 
@@ -50,6 +49,6 @@ export const constantRoutes: RouteRecordRaw[] = [
 
 /** 路由实例 */
 export const router = createRouter({
-  history: routerConfig.history,
+  history: createWebHashHistory(),
   routes: constantRoutes
 })

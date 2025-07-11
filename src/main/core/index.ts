@@ -1,5 +1,5 @@
 import type { ChildProcessWithoutNullStreams } from 'child_process'
-import { spawn, exec } from 'child_process'
+import { spawn, execFile } from 'child_process'
 import { EventEmitter } from 'events'
 import { join } from 'path'
 import { listenToUsbmuxd } from './usbmuxd'
@@ -30,7 +30,10 @@ class DeviceManager extends EventEmitter {
     // 根据平台返回不同的路径
     const platform = process.platform
     if (platform === 'win32') {
-      return join(__dirname, '../../resources/libimobiledevice/win-x64')
+      return join(__dirname, '../../resources/libimobiledevice/win-x64').replace(
+        'app.asar',
+        'app.asar.unpacked'
+      )
     } else if (platform === 'darwin') {
       return '/usr/local/bin'
     } else {
@@ -41,6 +44,7 @@ class DeviceManager extends EventEmitter {
   async initialize(): Promise<boolean> {
     try {
       console.log('初始化 iOS 设备管理器...')
+      console.log(this.libimobiledevicePath)
       // 检查 libimobiledevice 是否已安装
       await this.checkLibimobiledevice()
 
@@ -57,8 +61,9 @@ class DeviceManager extends EventEmitter {
 
   async checkLibimobiledevice(): Promise<void> {
     return new Promise((resolve, reject) => {
-      exec(`${this.libimobiledevicePath}/idevice_id --version`, (error, stdout) => {
+      execFile(`${this.libimobiledevicePath}/idevice_id`, ['--version'], (error, stdout) => {
         if (error) {
+          console.error('libimobiledevice 检查失败:', error)
           reject(`libimobiledevice 未安装或未配置正确: ${error.message}`)
         } else {
           console.log('libimobiledevice 版本:', stdout.trim())
@@ -74,52 +79,55 @@ class DeviceManager extends EventEmitter {
       return
     }
 
-    await ensureServiceRunning('Apple Mobile Device Service')
+    try {
+      await ensureServiceRunning('Apple Mobile Device Service')
 
-    const statusManager = new DeviceStatusManager({
-      ideviceinfoPath: `${this.libimobiledevicePath}/idevicepair`
-    })
-    listenToUsbmuxd(async (data) => {
-      const { MessageType, Properties } = data
-      const deviceId = Properties?.SerialNumber
-      // 设备插入
-      if (MessageType === 'Attached') {
-        if (!deviceId) {
-          console.warn('设备未提供序列号，无法处理')
-          return
+      const statusManager = new DeviceStatusManager({
+        ideviceinfoPath: `${this.libimobiledevicePath}/idevicepair`
+      })
+      listenToUsbmuxd(async (data) => {
+        const { MessageType, Properties } = data
+        const deviceId = Properties?.SerialNumber
+        // 设备插入
+        if (MessageType === 'Attached') {
+          if (!deviceId) {
+            console.warn('设备未提供序列号，无法处理')
+            return
+          }
+          console.log(`设备 ${deviceId} 已连接`)
+          this.deviceStatusMap.set(deviceId, 1) // 连接中
+          this.updateDeviceStatus(deviceId, 1)
+          statusManager.startWatchingDeviceStatus(deviceId, ({ accessible }) => {
+            if (accessible === 'password') {
+              this.deviceStatusMap.set(deviceId, 2) // 已连接但需要密码
+              this.updateDeviceStatus(deviceId, 2)
+              return
+            }
+            if (accessible === 'waitpair') {
+              this.deviceStatusMap.set(deviceId, 3) // 等待信任
+              this.updateDeviceStatus(deviceId, 3)
+            }
+            if (accessible === 'nopair') {
+              this.deviceStatusMap.set(deviceId, 4) // 信任失败
+              this.updateDeviceStatus(deviceId, 4)
+              return
+            }
+            if (accessible === 'success') {
+              this.deviceStatusMap.set(deviceId, 5) // 已配对
+              this.updateDeviceStatus(deviceId, 5)
+              return
+            }
+          })
         }
-        console.log(`设备 ${deviceId} 已连接`)
-        this.deviceStatusMap.set(deviceId, 1) // 连接中
-        this.updateDeviceStatus(deviceId, 1)
-        statusManager.startWatchingDeviceStatus(deviceId, ({ accessible }) => {
-          if (accessible === 'password') {
-            this.deviceStatusMap.set(deviceId, 2) // 已连接但需要密码
-            this.updateDeviceStatus(deviceId, 2)
-            return
-          }
-          if (accessible === 'waitpair') {
-            this.deviceStatusMap.set(deviceId, 3) // 等待信任
-            this.updateDeviceStatus(deviceId, 3)
-          }
-          if (accessible === 'nopair') {
-            this.deviceStatusMap.set(deviceId, 4) // 信任失败
-            this.updateDeviceStatus(deviceId, 4)
-            return
-          }
-          if (accessible === 'success') {
-            this.deviceStatusMap.set(deviceId, 5) // 已配对
-            this.updateDeviceStatus(deviceId, 5)
-            return
-          }
-        })
-      }
-      // 设备断开
-      if (MessageType === 'Detached') {
-        this.updateDeviceList()
-      }
-    })
-
-    this.isMonitoring = true
+        // 设备断开
+        if (MessageType === 'Detached') {
+          this.updateDeviceList()
+        }
+      })
+      this.isMonitoring = true
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   // 更新设备状态并获取设备信息
@@ -157,7 +165,7 @@ class DeviceManager extends EventEmitter {
   // 获取当前连接的设备列表
   async getConnectedDevices(): Promise<string[]> {
     return new Promise((resolve, reject) => {
-      exec(`${this.libimobiledevicePath}/idevice_id -l`, (error, stdout) => {
+      execFile(`${this.libimobiledevicePath}/idevice_id`, ['-l'], (error, stdout) => {
         if (error) {
           reject(error)
           return
@@ -204,54 +212,62 @@ class DeviceManager extends EventEmitter {
   // 获取设备配对状态
   async isDevicePaired(deviceId: string): Promise<boolean> {
     return new Promise((resolve) => {
-      exec(`${this.libimobiledevicePath}/idevicepair -u ${deviceId} validate`, (error, stdout) => {
-        if (error) {
-          resolve(false)
-          return
-        }
-        // 如果输出包含 "SUCCESS" 则表示设备已配对
-        const isPaired = stdout.includes('SUCCESS')
-        resolve(isPaired)
-      })
-    })
-  }
-
-  // 获取设备解锁状态
-  async isDeviceUnlocked(deviceId: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      exec(
-        `${this.libimobiledevicePath}/ideviceinfo -u ${deviceId} -k ActivationState`,
+      execFile(
+        `${this.libimobiledevicePath}/idevicepair`,
+        ['-u', `${deviceId}`, 'validate'],
         (error, stdout) => {
           if (error) {
             resolve(false)
             return
           }
-          // 如果输出包含 "Unactivated" 则表示设备未解锁
-          const isUnlocked = stdout.trim() !== 'Unactivated'
-          resolve(isUnlocked)
+          // 如果输出包含 "SUCCESS" 则表示设备已配对
+          const isPaired = stdout.includes('SUCCESS')
+          resolve(isPaired)
         }
       )
     })
   }
 
+  // 获取设备解锁状态
+  // async isDeviceUnlocked(deviceId: string): Promise<boolean> {
+  //   return new Promise((resolve) => {
+  //     execFile(
+  //       `${this.libimobiledevicePath}/ideviceinfo -u ${deviceId} -k ActivationState`,
+  //       (error, stdout) => {
+  //         if (error) {
+  //           resolve(false)
+  //           return
+  //         }
+  //         // 如果输出包含 "Unactivated" 则表示设备未解锁
+  //         const isUnlocked = stdout.trim() !== 'Unactivated'
+  //         resolve(isUnlocked)
+  //       }
+  //     )
+  //   })
+  // }
+
   // 获取设备信息
   async getDeviceInfo(deviceId: string): Promise<Record<string, string>> {
     return new Promise((resolve, reject) => {
-      exec(`${this.libimobiledevicePath}/ideviceinfo -u ${deviceId}`, (error, stdout) => {
-        if (error) {
-          reject(error)
-          return
-        }
-        const info = {}
-        const lines = stdout.split('\n')
-        lines.forEach((line) => {
-          const [key, value] = line.split(': ')
-          if (key && value) {
-            info[key.trim()] = value.trim()
+      execFile(
+        `${this.libimobiledevicePath}/ideviceinfo`,
+        [`-u`, `${deviceId}`],
+        (error, stdout) => {
+          if (error) {
+            reject(error)
+            return
           }
-        })
-        resolve(info)
-      })
+          const info = {}
+          const lines = stdout.split('\n')
+          lines.forEach((line) => {
+            const [key, value] = line.split(': ')
+            if (key && value) {
+              info[key.trim()] = value.trim()
+            }
+          })
+          resolve(info)
+        }
+      )
     })
   }
 
@@ -318,7 +334,7 @@ class DeviceManager extends EventEmitter {
   async uninstallApp(deviceId: string, bundleId: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const cmd = `ideviceinstaller -u ${deviceId} -U ${bundleId}`
-      exec(cmd, (error, stdout) => {
+      execFile(cmd, (error, stdout) => {
         if (error) {
           reject(error)
         } else {
@@ -330,7 +346,7 @@ class DeviceManager extends EventEmitter {
 
   async getInstalledApps(deviceId: string): Promise<{ bundleId: string; name: string }[]> {
     return new Promise((resolve, reject) => {
-      exec(`ideviceinstaller -u ${deviceId} -l`, (error, stdout) => {
+      execFile(`ideviceinstaller -u ${deviceId} -l`, (error, stdout) => {
         if (error) {
           reject(error)
           return
@@ -354,7 +370,7 @@ class DeviceManager extends EventEmitter {
   async takeScreenshot(deviceId: string, outputPath: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const cmd = `idevicescreenshot -u ${deviceId} "${outputPath}"`
-      exec(cmd, (error) => {
+      execFile(cmd, (error) => {
         if (error) {
           reject(error)
         } else {
@@ -464,7 +480,7 @@ class DeviceManager extends EventEmitter {
 
   async rebootDevice(deviceId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      exec(`idevicediagnostics -u ${deviceId} restart`, (error) => {
+      execFile(`idevicediagnostics -u ${deviceId} restart`, (error) => {
         if (error) {
           reject(error)
         } else {
@@ -476,7 +492,7 @@ class DeviceManager extends EventEmitter {
 
   async shutdownDevice(deviceId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      exec(`idevicediagnostics -u ${deviceId} shutdown`, (error) => {
+      execFile(`idevicediagnostics -u ${deviceId} shutdown`, (error) => {
         if (error) {
           reject(error)
         } else {

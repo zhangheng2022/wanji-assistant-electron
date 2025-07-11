@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "An Electron application with Vue and TypeScript",
   "main": "./out/main/index.js",
-  "author": "example.com",
+  "author": "com.tengwei.wanjisass",
   "homepage": "https://electron-vite.org",
   "scripts": {
     "format": "prettier --write .",
@@ -28,6 +28,7 @@
     "@element-plus/icons-vue": "^2.3.1",
     "bplist-creator": "^0.1.1",
     "bplist-parser": "^0.3.2",
+    "electron-log": "^5.4.1",
     "electron-updater": "^6.6.2",
     "element-plus": "^2.10.3",
     "lodash-es": "^4.17.21",

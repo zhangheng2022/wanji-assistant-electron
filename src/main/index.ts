@@ -2,8 +2,9 @@ import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import * as path from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import log from 'electron-log/main'
 import DeviceManager from './core' // Adjust the import path as necessary
-import icon from '../../resources/icon.png?asset'
+import icon from '../../resources/images/icon.png?asset'
 
 let deviceManager: DeviceManager
 let mainWindow: BrowserWindow
@@ -15,7 +16,7 @@ function createWindow(): void {
     height: 670,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    ...(process.platform === 'linux' ? { icon } : { icon }),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js')
     }
@@ -39,9 +40,16 @@ function createWindow(): void {
   }
 
   // 开发模式下打开开发者工具
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.webContents.openDevTools()
-  }
+  // if (process.env.NODE_ENV === 'development') {
+  //   mainWindow.webContents.openDevTools()
+  // }
+  mainWindow.webContents.openDevTools()
+
+  log.initialize()
+  console.log = log.log
+  console.error = log.error
+  console.warn = log.warn
+  console.info = log.info
 }
 
 // This method will be called when Electron has finished
