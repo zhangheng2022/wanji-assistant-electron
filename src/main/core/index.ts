@@ -29,6 +29,8 @@ class DeviceManager extends EventEmitter {
   findLibimobiledevicePath(): string {
     // 根据平台返回不同的路径
     const platform = process.platform
+    console.log('platform', platform)
+
     if (platform === 'win32') {
       return join(__dirname, '../../resources/libimobiledevice/win-x64').replace(
         'app.asar',
