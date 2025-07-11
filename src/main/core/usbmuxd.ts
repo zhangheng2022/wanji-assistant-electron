@@ -1,7 +1,9 @@
 import net from 'net'
 import os from 'os'
 import bplistCreator from 'bplist-creator'
-import bplistParser from 'bplist-parser'
+// import bplistParser from 'bplist-parser'
+import plist from 'plist'
+// import { XMLParser } from 'fast-xml-parser'
 
 type UsbmuxdMessage = {
   MessageType: string
@@ -25,13 +27,22 @@ export function listenToUsbmuxd(onChange: (msg: UsbmuxdMessage) => void): void {
 
   socket.on('data', async (data: Buffer) => {
     const payload = data.subarray(16)
+    const text = payload.toString('utf8')
     try {
-      const [parsed] = bplistParser.parseBuffer(payload)
+      const parsed = plist.parse(text)
       console.log('✅ 解析成功:', parsed)
       onChange(parsed as UsbmuxdMessage)
     } catch (e) {
-      console.error('❌ bplist 解析失败:', e)
+      console.error('❌ XML plist 解析失败:', e)
     }
+    // const payload = data.subarray(16)
+    // try {
+    //   const [parsed] = bplistParser.parseBuffer(payload)
+    //   console.log('✅ 解析成功:', parsed)
+    //   onChange(parsed as UsbmuxdMessage)
+    // } catch (e) {
+    //   console.error('❌ bplist 解析失败:', e)
+    // }
   })
 
   socket.on('error', (err) => {
