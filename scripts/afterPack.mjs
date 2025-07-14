@@ -5,6 +5,8 @@ import { execSync } from 'node:child_process'
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export default async function afterPack(context) {
+  console.log('🔧 执行 afterPack 脚本...', context.appOutDir)
+
   const unpackedDir = path.join(
     context.appOutDir,
     'resources',
