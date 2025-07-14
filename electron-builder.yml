@@ -21,6 +21,7 @@ msi:
   createStartMenuShortcut: true
   perMachine: true
   oneClick: false
+  runAfterFinish: false
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
