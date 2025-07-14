@@ -47,7 +47,7 @@ function fixAllDylibPaths(binaryPath) {
 
   deps.forEach((depPath) => {
     const dylibName = path.basename(depPath)
-    const newPath = `@executable_path/${dylibName}`
+    const newPath = `@loader_path/${dylibName}`
     fixDylibPath(binaryPath, depPath, newPath)
   })
 }
