@@ -82,8 +82,10 @@ class DeviceManager extends EventEmitter {
     }
 
     try {
-      await ensureServiceRunning('Apple Mobile Device Service')
-
+      const platform = process.platform
+      if (platform === 'win32') {
+        await ensureServiceRunning('Apple Mobile Device Service')
+      }
       const statusManager = new DeviceStatusManager({
         ideviceinfoPath: `${this.libimobiledevicePath}/idevicepair`
       })
