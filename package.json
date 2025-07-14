@@ -16,8 +16,8 @@
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
-    "build:win": "npm run build && electron-builder --win",
-    "build:mac": "npm run build && electron-builder --mac",
+    "build:win": "npm run build && electron-builder --config electron-builder.config.mjs --win",
+    "build:mac": "npm run build && electron-builder --config electron-builder.config.mjs --mac",
     "build:linux": "npm run build && electron-builder --linux",
     "ncu": "npx npm-check-updates",
     "prepare": "husky"

@@ -57,5 +57,5 @@ export default {
     provider: 'generic',
     url: 'https://example.com/auto-updates'
   },
-  afterPack
+  afterPack: afterPack
 }
