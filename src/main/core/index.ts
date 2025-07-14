@@ -37,7 +37,10 @@ class DeviceManager extends EventEmitter {
         'app.asar.unpacked'
       )
     } else if (platform === 'darwin') {
-      return '/usr/local/bin'
+      return join(__dirname, '../../resources/libimobiledevice/mac').replace(
+        'app.asar',
+        'app.asar.unpacked'
+      )
     } else {
       return '/usr/bin'
     }
