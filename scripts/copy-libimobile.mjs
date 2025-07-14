@@ -17,7 +17,6 @@ function copyFileWithPermission(src, dest) {
   console.log(`✅ 拷贝并设置权限: ${dest}`)
 }
 
-// 解析 otool -L 输出，返回依赖库路径数组（过滤系统库）
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function parseOtoolOutput(otoolOutput) {
   return otoolOutput
@@ -29,21 +28,21 @@ function parseOtoolOutput(otoolOutput) {
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function fixDylibPath(binaryPath, oldPath, newPath) {
+  if (oldPath === newPath) return
   try {
+    console.log(`🛠️ 正在修改: ${binaryPath} 中 ${oldPath} → ${newPath}`)
     execSync(`install_name_tool -change "${oldPath}" "${newPath}" "${binaryPath}"`)
-    console.log(`🔧 修改依赖路径: ${oldPath} → ${newPath} (in ${path.basename(binaryPath)})`)
+    console.log(`🔧 成功修改依赖路径`)
   } catch (err) {
-    console.warn(
-      `⚠️ 修改依赖路径失败: ${oldPath} → ${newPath} (in ${path.basename(binaryPath)})`,
-      err.message
-    )
+    console.error(`❌ 修改失败: ${oldPath} → ${newPath} in ${binaryPath}`)
+    console.error('错误信息:', err.message)
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function fixAllDylibPaths(binaryPath) {
-  const otool = execSync(`otool -L "${binaryPath}"`).toString()
-  const deps = parseOtoolOutput(otool)
+  const otoolOutput = execSync(`otool -L "${binaryPath}"`).toString()
+  const deps = parseOtoolOutput(otoolOutput)
 
   deps.forEach((depPath) => {
     const dylibName = path.basename(depPath)
@@ -60,10 +59,10 @@ function copyBinaryAndDeps(binary) {
 
     copyFileWithPermission(src, dest)
 
-    // 修改主二进制文件的依赖路径
+    // 修改主可执行文件依赖
     fixAllDylibPaths(dest)
 
-    // 复制依赖 dylib
+    // 复制并修复依赖库
     const otool = execSync(`otool -L "${src}"`).toString()
     const dylibPaths = parseOtoolOutput(otool)
 
@@ -72,7 +71,6 @@ function copyBinaryAndDeps(binary) {
       const dylibDest = path.join(TARGET_DIR, dylibName)
       if (!fs.existsSync(dylibDest)) {
         copyFileWithPermission(dylib, dylibDest)
-        // 修改 dylib 本身的依赖路径
         fixAllDylibPaths(dylibDest)
       }
     })
