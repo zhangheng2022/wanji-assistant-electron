@@ -35,14 +35,6 @@ export function listenToUsbmuxd(onChange: (msg: UsbmuxdMessage) => void): void {
     } catch (e) {
       console.error('❌ XML plist 解析失败:', e)
     }
-    // const payload = data.subarray(16)
-    // try {
-    //   const [parsed] = bplistParser.parseBuffer(payload)
-    //   console.log('✅ 解析成功:', parsed)
-    //   onChange(parsed as UsbmuxdMessage)
-    // } catch (e) {
-    //   console.error('❌ bplist 解析失败:', e)
-    // }
   })
 
   socket.on('error', (err) => {

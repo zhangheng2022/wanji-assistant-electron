@@ -90,8 +90,9 @@ class DeviceManager extends EventEmitter {
       listenToUsbmuxd(async (data) => {
         const { MessageType, Properties } = data
         const deviceId = Properties?.SerialNumber
+        const connectionType = Properties?.ConnectionType
         // 设备插入
-        if (MessageType === 'Attached') {
+        if (MessageType === 'Attached' && connectionType === 'USB') {
           if (!deviceId) {
             console.warn('设备未提供序列号，无法处理')
             return
@@ -150,6 +151,7 @@ class DeviceManager extends EventEmitter {
         } catch (error) {
           console.error(`获取设备信息失败 (${deviceId}):`, error)
           deviceInfo = existingDevice?.info || {}
+          status = 0
         }
       }
       const device: DeviceInfo = {

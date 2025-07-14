@@ -13,6 +13,8 @@ function checkServiceRunning(serviceName: string): Promise<boolean> {
 function startService(serviceName: string): Promise<string> {
   return new Promise((resolve, reject) => {
     exec(`net start "${serviceName}"`, (error, stdout) => {
+      console.log(error)
+
       if (error) return reject(error)
       resolve(stdout)
     })
