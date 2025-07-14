@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const TARGET_DIR = path.resolve(__dirname, '../resources/libimobiledevice/mac')
-const BINARIES = ['idevice_id']
+const BINARIES = ['idevice_id', 'ideviceinfo', 'idevicesyslog', 'idevicepair']
 
 fs.mkdirSync(TARGET_DIR, { recursive: true })
 
