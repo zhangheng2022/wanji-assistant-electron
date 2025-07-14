@@ -2,7 +2,8 @@ import path from 'path'
 import fs from 'fs'
 import { execSync } from 'child_process'
 
-module.exports = async function (context) {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function afterPack(context) {
   const unpackedBinDir = path.join(
     context.appOutDir,
     'resources',
