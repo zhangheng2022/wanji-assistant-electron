@@ -1,5 +1,3 @@
 import { afterPack } from './scripts/afterPack.js'
 
-module.exports = {
-  afterPack: afterPack
-}
+exports.default = afterPack
