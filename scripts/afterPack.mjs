@@ -9,11 +9,10 @@ export default async function afterPack(context) {
 
   const unpackedDir = path.join(
     context.appOutDir,
-    'resources',
-    'app.asar.unpacked',
-    'resources',
-    'libimobiledevice',
-    'mac'
+    '万机助手.app',
+    'Contents',
+    'Resources',
+    'app.asar.unpacked/resources/libimobiledevice/mac'
   )
 
   if (!fs.existsSync(unpackedDir)) {
