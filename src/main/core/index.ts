@@ -3,7 +3,7 @@ import { spawn, execFile } from 'child_process'
 import { EventEmitter } from 'events'
 import { join } from 'path'
 import { listenToUsbmuxd } from './usbmuxd'
-// import { ensureServiceRunning } from '../utils/service-running'
+import { ensureServiceRunning } from '../utils/service-running'
 import { DeviceStatusManager } from './device-status'
 
 interface DeviceInfo {
@@ -82,7 +82,7 @@ class DeviceManager extends EventEmitter {
     }
 
     try {
-      // await ensureServiceRunning('Apple Mobile Device Service')
+      await ensureServiceRunning('Apple Mobile Device Service')
 
       const statusManager = new DeviceStatusManager({
         ideviceinfoPath: `${this.libimobiledevicePath}/idevicepair`

@@ -43,7 +43,7 @@ function createWindow(): void {
   // if (process.env.NODE_ENV === 'development') {
   //   mainWindow.webContents.openDevTools()
   // }
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 
   log.initialize()
   console.log = log.log
