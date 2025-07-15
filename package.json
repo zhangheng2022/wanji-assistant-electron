@@ -21,8 +21,8 @@
     "build:linux": "npm run build && electron-builder --linux",
     "ncu": "npx npm-check-updates",
     "prepare": "husky",
-    "copy:libimobile:x86": "node scripts/copy-libimobile.mjs --arch x86",
-    "copy:libimobile:arm64": "node scripts/copy-libimobile.mjs --arch arm64"
+    "copy:libimobile:x86": "node scripts/copy-libimobile.mjs --arch=x86",
+    "copy:libimobile:arm64": "node scripts/copy-libimobile.mjs --arch=arm64"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
