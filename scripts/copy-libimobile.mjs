@@ -5,10 +5,26 @@ import { execSync } from 'child_process'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const TARGET_DIR = path.resolve(__dirname, '../resources/libimobiledevice/mac')
 const BINARIES = ['idevice_id', 'ideviceinfo', 'idevicesyslog', 'idevicepair']
 
+// 获取 --arch 参数
+const archArg = process.argv.find((arg) => arg.startsWith('--arch='))
+const arch = archArg ? archArg.split('=')[1] : 'native'
+
+// 校验
+if (!['arm64', 'x86'].includes(arch)) {
+  console.error(`❌ 无效的架构参数: ${arch}，应为 --arch=arm64 或 --arch=x86`)
+  process.exit(1)
+}
+
+// 输出目录
+const TARGET_DIR = path.resolve(__dirname, `../resources/libimobiledevice/mac-${arch}`)
 fs.mkdirSync(TARGET_DIR, { recursive: true })
+
+function run(cmd) {
+  const archCmd = arch === 'x86' ? `arch -x86_64 ${cmd}` : `arch -arm64 ${cmd}`
+  return execSync(archCmd).toString().trim()
+}
 
 function copyFileWithPermission(src, dest) {
   fs.copyFileSync(src, dest)
@@ -36,7 +52,6 @@ function fixDylibPath(binaryPath, oldPath, newPath) {
 function fixAllDylibPaths(binaryPath) {
   const output = execSync(`otool -L "${binaryPath}"`).toString()
   const deps = parseOtoolOutput(output)
-
   deps.forEach((dep) => {
     const name = path.basename(dep)
     const newPath = `@loader_path/${name}`
@@ -45,25 +60,28 @@ function fixAllDylibPaths(binaryPath) {
 }
 
 function copyBinaryAndFix(binary) {
-  const src = execSync(`which ${binary}`).toString().trim()
-  const dest = path.join(TARGET_DIR, binary)
+  try {
+    const src = run(`which ${binary}`)
+    const dest = path.join(TARGET_DIR, binary)
 
-  copyFileWithPermission(src, dest)
+    copyFileWithPermission(src, dest)
 
-  // 查看复制后的依赖
-  const otool = execSync(`otool -L "${dest}"`).toString()
-  const dylibPaths = parseOtoolOutput(otool)
+    const dylibOutput = execSync(`otool -L "${dest}"`).toString()
+    const dylibPaths = parseOtoolOutput(dylibOutput)
 
-  dylibPaths.forEach((dylib) => {
-    const name = path.basename(dylib)
-    const destDylib = path.join(TARGET_DIR, name)
-    if (!fs.existsSync(destDylib)) {
-      copyFileWithPermission(dylib, destDylib)
-    }
-  })
+    dylibPaths.forEach((dylib) => {
+      const name = path.basename(dylib)
+      const destDylib = path.join(TARGET_DIR, name)
+      if (!fs.existsSync(destDylib)) {
+        copyFileWithPermission(dylib, destDylib)
+        fixAllDylibPaths(destDylib)
+      }
+    })
 
-  // 最后再修复 dest 可执行文件中的依赖路径
-  fixAllDylibPaths(dest)
+    fixAllDylibPaths(dest)
+  } catch (err) {
+    console.warn(`⚠️ 处理 ${binary} 失败:`, err.message)
+  }
 }
 
 BINARIES.forEach(copyBinaryAndFix)

@@ -28,22 +28,19 @@ class DeviceManager extends EventEmitter {
 
   findLibimobiledevicePath(): string {
     // 根据平台返回不同的路径
-    const platform = process.platform
-    console.log('platform', platform)
-
+    const { platform, arch } = process
+    console.log('===process', platform, arch)
+    let path = ''
     if (platform === 'win32') {
-      return join(__dirname, '../../resources/libimobiledevice/win-x64').replace(
-        'app.asar',
-        'app.asar.unpacked'
-      )
-    } else if (platform === 'darwin') {
-      return join(__dirname, '../../resources/libimobiledevice/mac').replace(
-        'app.asar',
-        'app.asar.unpacked'
-      )
-    } else {
-      return '/usr/bin'
+      path = '../../resources/libimobiledevice/win-x64'
     }
+    if (platform === 'darwin' && arch === 'arm64') {
+      path = '../../resources/libimobiledevice/mac-arm64'
+    }
+    if (platform === 'darwin' && arch === 'x64') {
+      path = '../../resources/libimobiledevice/mac-x64'
+    }
+    return join(__dirname, path).replace('app.asar', 'app.asar.unpacked')
   }
 
   async initialize(): Promise<boolean> {
