@@ -38,7 +38,7 @@ class DeviceManager extends EventEmitter {
       path = '../../resources/libimobiledevice/mac-arm64'
     }
     if (platform === 'darwin' && arch === 'x64') {
-      path = '../../resources/libimobiledevice/mac-x64'
+      path = '../../resources/libimobiledevice/mac-x86'
     }
     return join(__dirname, path).replace('app.asar', 'app.asar.unpacked')
   }
