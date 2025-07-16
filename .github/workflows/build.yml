@@ -1,0 +1,91 @@
+name: Build and Release Electron App
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Format check
+        run: npm run format
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build Electron app
+        run: |
+          if [ "${{ runner.os }}" == "Linux" ]; then
+            npm run build:linux
+          elif [ "${{ runner.os }}" == "macOS" ]; then
+            npm run build:mac
+          elif [ "${{ runner.os }}" == "Windows" ]; then
+            npm run build:win
+          fi
+        shell: bash
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-artifacts
+          path: |
+            dist/**/*
+            !dist/**/*.blockmap
+            !dist/**/builder-debug.yml
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/**/*.dmg
+            dist/**/*.exe
+            dist/**/*.AppImage
+            dist/**/*.zip
+            dist/**/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
