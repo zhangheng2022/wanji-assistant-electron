@@ -36,7 +36,6 @@ export default async function afterPack(context) {
       } catch (err) {
         console.warn(`❌ 设置执行权限失败: ${fullPath}`, err.message)
       }
-
       try {
         execSync(`codesign --force --sign - "${fullPath}"`)
         console.log(`🔏 已签名: ${fullPath}`)
