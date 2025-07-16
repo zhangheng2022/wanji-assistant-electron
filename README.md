@@ -11,7 +11,7 @@ An Electron application with Vue and TypeScript
 ### Install
 
 ```bash
-$ npm install
+$ npm install1
 ```
 
 ### Development
