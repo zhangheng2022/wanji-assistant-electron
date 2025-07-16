@@ -153,7 +153,8 @@ class DeviceManager extends EventEmitter {
             DeviceColor: info.DeviceColor || '未知颜色',
             BatteryCurrentCapacity: info.BatteryCurrentCapacity || '未知电量',
             TotalDiskCapacity: info.TotalDiskCapacity || '未知容量',
-            CycleCount: info.GasGauge.CycleCount || '未知循环次数',
+            CycleCount: info.IORegistry.CycleCount || '未知循环次数',
+            NominalChargeCapacity: info.IORegistry.NominalChargeCapacity || '未知额定容量',
             RegulatoryModelNumber: info.RegulatoryModelNumber || '未知监管型号'
           }
         } catch (error) {
@@ -321,7 +322,7 @@ class DeviceManager extends EventEmitter {
       return new Promise((resolve, reject) => {
         execFile(
           `${this.libimobiledevicePath}/idevicediagnostics`,
-          ['-u', deviceId, 'diagnostics', 'All'],
+          ['-u', deviceId, 'ioregentry', 'AppleSmartBattery'],
           (error, stdout) => {
             if (error) {
               reject(error)
