@@ -60,6 +60,7 @@ app.whenReady().then(async () => {
   electronApp.setAppUserModelId('com.electron')
   if (process.platform === 'darwin') {
     app.dock?.setIcon(icon)
+    app.setName('万机助手')
   }
 
   // Default open or close DevTools by F12 in development
