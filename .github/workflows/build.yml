@@ -65,48 +65,38 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Get version and timestamp
-        id: meta
+      - name: Get version from package.json and append date
+        id: version
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          TIMESTAMP=$(date "+%Y-%m-%d %H:%M")
-          echo "VERSION=v$VERSION" >> $GITHUB_OUTPUT
-          echo "RELEASE_NAME=Release v$VERSION - $TIMESTAMP" >> $GITHUB_OUTPUT
+          DATE=$(date +'%Y%m%d')
+          TAG="v$VERSION-$DATE"
+          echo "TAG_NAME=$TAG" >> $GITHUB_OUTPUT
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist/
 
-      - name: Delete existing release if exists (but keep tag)
-        run: |
-          RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/${{ steps.meta.outputs.VERSION }} --jq '.id' || echo "")
-          if [ "$RELEASE_ID" != "" ]; then
-            echo "Deleting existing release ID $RELEASE_ID"
-            gh api -X DELETE repos/${{ github.repository }}/releases/$RELEASE_ID
-          else
-            echo "No existing release found."
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create GitHub Release (with timestamped name)
+      - name: Create GitHub Release with tag
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.meta.outputs.VERSION }}
-          name: ${{ steps.meta.outputs.RELEASE_NAME }}
+          tag_name: ${{ steps.version.outputs.TAG_NAME }}
+          name: Release ${{ steps.version.outputs.TAG_NAME }}
           draft: false
           prerelease: false
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.meta.outputs.VERSION }}
+          tag_name: ${{ steps.version.outputs.TAG_NAME }}
           files: |
             dist/**/*.dmg
             dist/**/*.exe
             dist/**/*.zip
+            dist/**/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
