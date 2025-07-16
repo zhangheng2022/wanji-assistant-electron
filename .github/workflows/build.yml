@@ -65,19 +65,6 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Get version from package.json and append date
-        id: version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          DATE=$(date +'%Y%m%d')
-          TAG="v$VERSION-$DATE"
-          echo "TAG_NAME=$TAG" >> $GITHUB_OUTPUT
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist/
-
       - name: Get version with unique tag
         id: version
         run: |
@@ -86,6 +73,11 @@ jobs:
           RAND=$(openssl rand -hex 3)
           TAG="v$VERSION-$DATE-$RAND"
           echo "TAG_NAME=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
