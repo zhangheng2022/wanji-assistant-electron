@@ -7,17 +7,14 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const BINARIES = ['idevice_id', 'ideviceinfo', 'idevicesyslog', 'idevicepair', 'idevicediagnostics']
 
-// 获取 --arch 参数
 const archArg = process.argv.find((arg) => arg.startsWith('--arch='))
 const arch = archArg ? archArg.split('=')[1] : 'native'
 
-// 校验
 if (!['arm64', 'x86'].includes(arch)) {
   console.error(`❌ 无效的架构参数: ${arch}，应为 --arch=arm64 或 --arch=x86`)
   process.exit(1)
 }
 
-// 输出目录
 const TARGET_DIR = path.resolve(__dirname, `../resources/libimobiledevice/mac-${arch}`)
 fs.mkdirSync(TARGET_DIR, { recursive: true })
 
@@ -49,12 +46,35 @@ function fixDylibPath(binaryPath, oldPath, newPath) {
   }
 }
 
+const fixedDylibs = new Set()
+
 function fixAllDylibPaths(binaryPath) {
   const output = execSync(`otool -L "${binaryPath}"`).toString()
   const deps = parseOtoolOutput(output)
+
   deps.forEach((dep) => {
     const name = path.basename(dep)
     const newPath = `@loader_path/${name}`
+    const destDylib = path.join(TARGET_DIR, name)
+
+    // 如果依赖尚未处理过
+    if (!fixedDylibs.has(dep)) {
+      fixedDylibs.add(dep)
+
+      if (!fs.existsSync(destDylib)) {
+        try {
+          if (fs.existsSync(dep)) {
+            copyFileWithPermission(dep, destDylib)
+            fixAllDylibPaths(destDylib) // 递归处理 dylib 的依赖
+          } else {
+            console.warn(`⚠️ 依赖路径不存在: ${dep}`)
+          }
+        } catch (err) {
+          console.warn(`❌ 拷贝依赖失败: ${dep}`, err.message)
+        }
+      }
+    }
+
     fixDylibPath(binaryPath, dep, newPath)
   })
 }
@@ -65,19 +85,6 @@ function copyBinaryAndFix(binary) {
     const dest = path.join(TARGET_DIR, binary)
 
     copyFileWithPermission(src, dest)
-
-    const dylibOutput = execSync(`otool -L "${dest}"`).toString()
-    const dylibPaths = parseOtoolOutput(dylibOutput)
-
-    dylibPaths.forEach((dylib) => {
-      const name = path.basename(dylib)
-      const destDylib = path.join(TARGET_DIR, name)
-      if (!fs.existsSync(destDylib)) {
-        copyFileWithPermission(dylib, destDylib)
-        fixAllDylibPaths(destDylib)
-      }
-    })
-
     fixAllDylibPaths(dest)
   } catch (err) {
     console.warn(`⚠️ 处理 ${binary} 失败:`, err.message)
