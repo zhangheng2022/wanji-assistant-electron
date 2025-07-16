@@ -50,11 +50,16 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
-  log.initialize()
-  console.log = log.log
-  console.error = log.error
-  console.warn = log.warn
-  console.info = log.info
+  try {
+    log.initialize()
+    console.log = log.log
+    console.error = log.error
+    console.warn = log.warn
+    console.info = log.info
+  } catch (error) {
+    console.error('日志初始化失败:', error)
+  }
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
   if (process.platform === 'darwin') {
