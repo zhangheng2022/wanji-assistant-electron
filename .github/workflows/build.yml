@@ -78,16 +78,14 @@ jobs:
         with:
           path: dist/
 
-      - name: Create GitHub Release with tag
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.version.outputs.TAG_NAME }}
-          name: Release ${{ steps.version.outputs.TAG_NAME }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get version with unique tag
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          DATE=$(date +'%Y%m%d')
+          RAND=$(openssl rand -hex 3)
+          TAG="v$VERSION-$DATE-$RAND"
+          echo "TAG_NAME=$TAG" >> $GITHUB_OUTPUT
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
@@ -97,6 +95,5 @@ jobs:
             dist/**/*.dmg
             dist/**/*.exe
             dist/**/*.zip
-            dist/**/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
