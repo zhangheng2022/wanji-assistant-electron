@@ -61,7 +61,7 @@ interface ScreenshotOptions {
 interface iOSDeviceAPI {
   // 设备管理
   getConnectedDevices(): Promise<Device[]>
-  getDeviceInfo(deviceId: string): Promise<Record<string, string>>
+  getDeviceInfo(deviceId: string): Promise<Record<string, any>>
 
   // 应用管理
   installApp(deviceId: string, ipaPath: string): Promise<boolean>

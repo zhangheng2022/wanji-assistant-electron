@@ -1,6 +1,7 @@
 import type { ChildProcessWithoutNullStreams } from 'child_process'
 import { spawn, execFile } from 'child_process'
 import { EventEmitter } from 'events'
+import plist from 'plist'
 import { join } from 'path'
 import { listenToUsbmuxd } from './usbmuxd'
 import { ensureServiceRunning } from '../utils/service-running'
@@ -144,11 +145,16 @@ class DeviceManager extends EventEmitter {
       if (status === 5 && (!existingDevice || existingDevice.status !== 5)) {
         try {
           const info = await this.getDeviceInfo(deviceId)
+          console.log(`获取设备信息成功 (${deviceId}):`, info)
           deviceInfo = {
             DeviceName: info.DeviceName || '未知设备',
             ProductVersion: info.ProductVersion || '未知版本',
             ModelNumber: info.ModelNumber || '未知型号',
-            DeviceColor: info.DeviceColor || '未知颜色'
+            DeviceColor: info.DeviceColor || '未知颜色',
+            BatteryCurrentCapacity: info.BatteryCurrentCapacity || '未知电量',
+            TotalDiskCapacity: info.TotalDiskCapacity || '未知容量',
+            CycleCount: info.GasGauge.CycleCount || '未知循环次数',
+            RegulatoryModelNumber: info.RegulatoryModelNumber || '未知监管型号'
           }
         } catch (error) {
           console.error(`获取设备信息失败 (${deviceId}):`, error)
@@ -253,28 +259,138 @@ class DeviceManager extends EventEmitter {
   // }
 
   // 获取设备信息
-  async getDeviceInfo(deviceId: string): Promise<Record<string, string>> {
-    return new Promise((resolve, reject) => {
-      execFile(
-        `${this.libimobiledevicePath}/ideviceinfo`,
-        [`-u`, `${deviceId}`],
-        (error, stdout) => {
-          if (error) {
-            reject(error)
-            return
-          }
-          const info = {}
-          const lines = stdout.split('\n')
-          lines.forEach((line) => {
-            const [key, value] = line.split(': ')
-            if (key && value) {
-              info[key.trim()] = value.trim()
+  async getDeviceInfo(deviceId: string): Promise<Record<string, any>> {
+    const baseInfo = (): Promise<Record<string, string>> => {
+      return new Promise((resolve, reject) => {
+        execFile(
+          `${this.libimobiledevicePath}/ideviceinfo`,
+          [`-u`, `${deviceId}`],
+          (error, stdout) => {
+            if (error) {
+              reject(error)
+              return
             }
-          })
-          resolve(info)
-        }
-      )
-    })
+            const info = {}
+            const lines = stdout.split('\n')
+            lines.forEach((line) => {
+              const [key, value] = line.split(': ')
+              if (key && value) {
+                info[key.trim()] = value.trim()
+              }
+            })
+            resolve(info)
+          }
+        )
+      })
+    }
+    const batteryInfo = (): Promise<Record<string, string>> => {
+      return new Promise((resolve, reject) => {
+        execFile(
+          `${this.libimobiledevicePath}/ideviceinfo`,
+          [`-u`, `${deviceId}`, '-q', 'com.apple.mobile.battery', '-k', 'BatteryCurrentCapacity'],
+          (error, stdout) => {
+            if (error) {
+              reject(error)
+              return
+            }
+            console.log(`获取电池信息 (${deviceId}):`, stdout)
+            const info = { BatteryCurrentCapacity: stdout.trim() }
+            resolve(info)
+          }
+        )
+      })
+    }
+    const diskInfo = (): Promise<Record<string, string>> => {
+      return new Promise((resolve, reject) => {
+        execFile(
+          `${this.libimobiledevicePath}/ideviceinfo`,
+          [`-u`, `${deviceId}`, '-q', 'com.apple.disk_usage', '-k', 'TotalDiskCapacity'],
+          (error, stdout) => {
+            if (error) {
+              reject(error)
+              return
+            }
+            console.log(`获取磁盘信息 (${deviceId}):`, stdout)
+            const info = { TotalDiskCapacity: stdout.trim() }
+            resolve(info)
+          }
+        )
+      })
+    }
+    const ioregentryBatteryInfo = (): Promise<Record<string, any>> => {
+      return new Promise((resolve, reject) => {
+        execFile(
+          `${this.libimobiledevicePath}/idevicediagnostics`,
+          ['-u', deviceId, 'diagnostics', 'All'],
+          (error, stdout) => {
+            if (error) {
+              reject(error)
+              return
+            }
+            try {
+              const parsed = plist.parse(stdout) as Record<string, any>
+              resolve(parsed)
+            } catch (parseErr) {
+              reject(parseErr)
+            }
+          }
+        )
+      })
+    }
+    const regulatoryModelNumberInfo = (): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        execFile(
+          `${this.libimobiledevicePath}/ideviceinfo`,
+          [`-u`, `${deviceId}`, '-k', 'RegulatoryModelNumber'],
+          (error, stdout) => {
+            if (error) {
+              reject(error)
+              return
+            }
+            const regulatoryModelNumber = stdout.trim()
+            console.log(`获取监管型号 (${deviceId}):`, regulatoryModelNumber)
+            resolve(regulatoryModelNumber)
+          }
+        )
+      })
+    }
+    // 获取所有信息
+    const [base, battery, disk, ioregentryBattery, regulatoryModelNumber] = await Promise.all([
+      baseInfo(),
+      batteryInfo(),
+      diskInfo(),
+      ioregentryBatteryInfo(),
+      regulatoryModelNumberInfo()
+    ])
+    console.log(`获取设备信息成功 (${deviceId}):`, battery, disk)
+    return {
+      ...base,
+      ...battery,
+      ...disk,
+      ...ioregentryBattery,
+      ...{ RegulatoryModelNumber: regulatoryModelNumber }
+    }
+    // return new Promise((resolve, reject) => {
+    //   execFile(
+    //     `${this.libimobiledevicePath}/ideviceinfo`,
+    //     [`-u`, `${deviceId}`],
+    //     (error, stdout) => {
+    //       if (error) {
+    //         reject(error)
+    //         return
+    //       }
+    //       const info = {}
+    //       const lines = stdout.split('\n')
+    //       lines.forEach((line) => {
+    //         const [key, value] = line.split(': ')
+    //         if (key && value) {
+    //           info[key.trim()] = value.trim()
+    //         }
+    //       })
+    //       resolve(info)
+    //     }
+    //   )
+    // })
   }
 
   // 更新设备列表 - 现在主要用于初始化时同步已连接的设备

@@ -69,11 +69,16 @@ const refreshDevices = async (): Promise<void> => {
     // 获取设备详细信息
     for (const device of devices.value) {
       try {
-        const deviceInfo = await window.iOSDeviceAPI.getDeviceInfo(device.id)
+        const info = await window.iOSDeviceAPI.getDeviceInfo(device.id)
         device.info = {
-          DeviceName: deviceInfo.DeviceName || '未知设备',
-          ProductVersion: deviceInfo.ProductVersion || '未知版本',
-          ModelNumber: deviceInfo.ModelNumber || '未知型号'
+          DeviceName: info.DeviceName || '未知设备',
+          ProductVersion: info.ProductVersion || '未知版本',
+          ModelNumber: info.ModelNumber || '未知型号',
+          DeviceColor: info.DeviceColor || '未知颜色',
+          BatteryCurrentCapacity: info.BatteryCurrentCapacity || '未知电量',
+          TotalDiskCapacity: info.TotalDiskCapacity || '未知容量',
+          CycleCount: info.GasGauge.CycleCount || '未知循环次数',
+          RegulatoryModelNumber: info.RegulatoryModelNumber || '未知监管型号'
         }
       } catch (error) {
         console.error(`Failed to get info for device ${device.id}:`, error)
