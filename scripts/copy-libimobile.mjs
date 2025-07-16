@@ -5,7 +5,7 @@ import { execSync } from 'child_process'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const BINARIES = ['idevice_id', 'ideviceinfo', 'idevicesyslog', 'idevicepair']
+const BINARIES = ['idevice_id', 'ideviceinfo', 'idevicesyslog', 'idevicepair', 'idevicediagnostics']
 
 // 获取 --arch 参数
 const archArg = process.argv.find((arg) => arg.startsWith('--arch='))
