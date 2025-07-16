@@ -3,12 +3,16 @@
 import path from 'node:path'
 import fs from 'node:fs'
 import { execSync } from 'node:child_process'
+import os from 'node:os'
 
 const archDirs = ['mac-arm64', 'mac-x86']
 
 export default async function afterPack(context) {
   console.log('🔧 执行 afterPack 脚本...', context.appOutDir)
-
+  if (os.platform !== 'darwin') {
+    console.warn('⚠️ 仅在 macOS 上执行 afterPack 脚本')
+    return
+  }
   for (const arch of archDirs) {
     const unpackedDir = path.join(
       context.appOutDir,

@@ -17,7 +17,7 @@ export default {
   ],
   asarUnpack: ['resources/**'],
   win: {
-    requestedExecutionLevel: 'requireAdministrator',
+    requestedExecutionLevel: 'highestAvailable',
     target: 'msi'
   },
   msi: {
