@@ -84,7 +84,7 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.TAG_NAME }}
           files: |
-            dist/*.dmg
-            dist/*.msi
+            dist/**/*.dmg
+            dist/**/*.msi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
