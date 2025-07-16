@@ -155,7 +155,10 @@ const onDeviceLog = (logData: any): void => {
 
 // 生命周期
 onMounted(() => {
-  refreshDevices()
+  setTimeout(() => {
+    // 延迟加载，确保 DOM 已渲染
+    refreshDevices()
+  }, 1000)
 
   // 设置事件监听
   window.iOSDeviceAPI.onDeviceConnected(onDeviceConnected)
