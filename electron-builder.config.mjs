@@ -31,14 +31,8 @@ export default {
   },
   mac: {
     entitlementsInherit: 'build/entitlements.mac.plist',
-    extendInfo: {
-      NSCameraUsageDescription: "Application requests access to the device's camera.",
-      NSMicrophoneUsageDescription: "Application requests access to the device's microphone.",
-      NSDocumentsFolderUsageDescription:
-        "Application requests access to the user's Documents folder.",
-      NSDownloadsFolderUsageDescription:
-        "Application requests access to the user's Downloads folder."
-    },
+    identity: 'Mac Developer: 帆 宫 (25RM72BWHW)',
+    hardenedRuntime: true,
     notarize: false
   },
   dmg: {
