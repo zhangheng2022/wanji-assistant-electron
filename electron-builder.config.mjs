@@ -31,7 +31,7 @@ export default {
   },
   mac: {
     entitlementsInherit: 'build/entitlements.mac.plist',
-    identity: 'Mac Developer: 帆 宫 (25RM72BWHW)',
+    identity: 'Developer ID Application: Hangzhou TENGWEI Technology Co., Ltd (Z7B5LMFWHJ)',
     hardenedRuntime: true,
     notarize: false
   },
