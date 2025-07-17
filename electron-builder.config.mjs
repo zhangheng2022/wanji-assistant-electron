@@ -30,9 +30,12 @@ export default {
     runAfterFinish: false
   },
   mac: {
-    entitlementsInherit: 'build/entitlements.mac.plist',
-    identity: 'Developer ID Application: Hangzhou TENGWEI Technology Co., Ltd (Z7B5LMFWHJ)',
+    identity: 'Hangzhou TENGWEI Technology Co., Ltd (Z7B5LMFWHJ)',
     hardenedRuntime: true,
+    entitlements: 'build/entitlements.mac.plist',
+    entitlementsInherit: 'build/entitlements.mac.plist',
+    gatekeeperAssess: false,
+    sign: true,
     notarize: false
   },
   dmg: {
