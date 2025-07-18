@@ -1,6 +1,6 @@
 // electron-builder.config.mjs
 import afterPack from './scripts/afterPack.mjs'
-import notarize from './scripts/notarize.mjs'
+// import notarize from './scripts/notarize.mjs'
 
 export default {
   appId: 'com.tengwei.wanjisass',
@@ -33,7 +33,7 @@ export default {
   },
   mac: {
     identity: 'Hangzhou TENGWEI Technology Co., Ltd (Z7B5LMFWHJ)',
-    hardenedRuntime: true,
+    hardenedRuntime: false,
     entitlements: 'build/entitlements.mac.plist',
     entitlementsInherit: 'build/entitlements.mac.plist',
     gatekeeperAssess: false,
@@ -56,6 +56,6 @@ export default {
     provider: 'generic',
     url: 'https://example.com/auto-updates'
   },
-  afterPack: afterPack,
-  afterSign: notarize
+  afterPack: afterPack
+  // afterSign: notarize
 }

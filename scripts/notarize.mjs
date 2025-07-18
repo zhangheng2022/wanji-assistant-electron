@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 // scripts/notarize.js
-import { notarize } from 'electron-notarize'
+import { notarize } from '@electron/notarize'
 import path from 'path'
 import { execSync } from 'child_process'
 
