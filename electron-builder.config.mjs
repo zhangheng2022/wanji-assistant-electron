@@ -13,7 +13,8 @@ export default {
     '!electron.vite.config.{js,ts,mjs,cjs}',
     '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}',
     '!{.env,.env.*,.npmrc,pnpm-lock.yaml}',
-    '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+    '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}',
+    '!**/Resources/**/*.pak'
   ],
   asarUnpack: ['resources/**'],
   win: {
@@ -35,7 +36,6 @@ export default {
     entitlements: 'build/entitlements.mac.plist',
     entitlementsInherit: 'build/entitlements.mac.plist',
     gatekeeperAssess: false,
-    sign: true,
     notarize: false
   },
   dmg: {
