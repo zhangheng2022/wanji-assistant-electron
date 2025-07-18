@@ -5,6 +5,7 @@ import notarize from './scripts/notarize.mjs'
 export default {
   appId: 'com.tengwei.wanjisass',
   productName: 'wanjizhushou',
+  electronLanguages: ['zh_CN'],
   directories: {
     buildResources: 'build'
   },
