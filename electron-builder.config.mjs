@@ -32,6 +32,9 @@ export default {
   mac: {
     identity: 'Hangzhou TENGWEI Technology Co., Ltd (Z7B5LMFWHJ)',
     hardenedRuntime: true,
+    sign: {
+      options: ['--deep']
+    },
     entitlements: 'build/entitlements.mac.plist',
     entitlementsInherit: 'build/entitlements.mac.plist',
     gatekeeperAssess: false,
