@@ -16,7 +16,7 @@ export default async function afterPack(context) {
   for (const arch of archDirs) {
     const unpackedDir = path.join(
       context.appOutDir,
-      '万机助手.app',
+      'wanjizhushou.app',
       'Contents',
       'Resources',
       `app.asar.unpacked/resources/libimobiledevice/${arch}`
