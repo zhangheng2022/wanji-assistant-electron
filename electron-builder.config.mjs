@@ -35,7 +35,8 @@ export default {
     entitlements: 'build/entitlements.mac.plist',
     entitlementsInherit: 'build/entitlements.mac.plist',
     gatekeeperAssess: false,
-    notarize: false
+    notarize: false,
+    strictVerify: false
   },
   dmg: {
     artifactName: '${name}-${version}.${ext}'
