@@ -3,7 +3,7 @@ import afterPack from './scripts/afterPack.mjs'
 
 export default {
   appId: 'com.tengwei.wanjisass',
-  productName: '万机助手',
+  productName: 'wanjizhushou',
   directories: {
     buildResources: 'build'
   },
