@@ -1,5 +1,6 @@
 // electron-builder.config.mjs
 import afterPack from './scripts/afterPack.mjs'
+import notarize from './scripts/notarize.mjs'
 
 export default {
   appId: 'com.tengwei.wanjisass',
@@ -54,5 +55,6 @@ export default {
     provider: 'generic',
     url: 'https://example.com/auto-updates'
   },
-  afterPack: afterPack
+  afterPack: afterPack,
+  afterSign: notarize
 }
