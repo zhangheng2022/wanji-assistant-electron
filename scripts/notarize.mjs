@@ -16,7 +16,8 @@ export default async function ({ appOutDir, packager, electronPlatformName }) {
     appPath: appPath,
     // 在环境变量中设定苹果 ID 和 APP‑SPECIFIC 密码
     appleId: '13466564568@163.com',
-    appleIdPassword: 'Beidou123'
+    appleIdPassword: 'uajy-lnty-jcxq-mtxi',
+    teamId: 'Z7B5LMFWHJ'
     // 可选：如果使用 App Store Connect API Key，可改为
     // tool: 'notarytool',
     // apiKey: process.env.APPLE_API_KEY,
