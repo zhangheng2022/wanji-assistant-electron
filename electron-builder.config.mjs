@@ -8,12 +8,14 @@ export default {
     buildResources: 'build'
   },
   files: [
+    '!**/Resources/**/*.pak',
     '!**/.vscode/*',
     '!src/*',
     '!electron.vite.config.{js,ts,mjs,cjs}',
     '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}',
     '!{.env,.env.*,.npmrc,pnpm-lock.yaml}',
-    '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+    '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}',
+    'app/**/*'
   ],
   asarUnpack: ['resources/**'],
   win: {
@@ -32,9 +34,6 @@ export default {
   mac: {
     identity: 'Hangzhou TENGWEI Technology Co., Ltd (Z7B5LMFWHJ)',
     hardenedRuntime: true,
-    sign: {
-      options: ['--deep']
-    },
     entitlements: 'build/entitlements.mac.plist',
     entitlementsInherit: 'build/entitlements.mac.plist',
     gatekeeperAssess: false,
