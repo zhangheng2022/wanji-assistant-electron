@@ -37,8 +37,7 @@ export default {
     entitlements: 'build/entitlements.mac.plist',
     entitlementsInherit: 'build/entitlements.mac.plist',
     gatekeeperAssess: false,
-    notarize: false,
-    files: ['!**/Resources/**/*.pak', 'app/**/*']
+    notarize: false
   },
   dmg: {
     artifactName: '${name}-${version}.${ext}'
