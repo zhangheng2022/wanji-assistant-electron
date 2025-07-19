@@ -34,7 +34,7 @@ export default {
   mac: {
     identity: 'Hangzhou TENGWEI Technology Co., Ltd (Z7B5LMFWHJ)',
     hardenedRuntime: false,
-    notarize: true
+    notarize: false
   },
   dmg: {
     artifactName: '${name}-${version}.${ext}'
