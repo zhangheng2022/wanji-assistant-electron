@@ -127,7 +127,7 @@ class DeviceManager extends EventEmitter {
         }
         // 设备断开
         if (MessageType === 'Detached') {
-          // this.updateDeviceList()
+          this.updateDeviceList()
         }
       })
       this.isMonitoring = true
